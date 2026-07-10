@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ st.name }} inventory{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ st.name }} — Inventory</h1></div>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Fuel Stock (litres)</h2>
+    <table class="tbl">
+      <thead><tr><th>Type</th><th class="num">Initial</th><th class="num">Out</th><th class="num">In</th><th class="num">Current</th></tr></thead>
+      <tbody>
+        {% for f in fuel %}
+        <tr class="{{ 'total-row' if 'Total' in f.fuel_type or 'GRAND' in f.fuel_type else '' }}">
+          <td>{{ f.fuel_type }}</td>
+          <td class="num">{{ f.initial|qty }}</td>
+          <td class="num">{{ f.total_out|qty }}</td>
+          <td class="num">{{ f.total_in|qty }}</td>
+          <td class="num">{{ f.current|qty }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Gas (LPG cylinders)</h2>
+    <ul class="chips">
+      <li>Restocked: <b>{{ gas.restocked|qty }}</b></li>
+      <li>Sold: <b>{{ gas.sold|qty }}</b></li>
+      <li>On hand: <b>{{ gas.on_hand|qty }}</b></li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Oil Stock</h2>
+    <div class="table-scroll">
+    <table class="tbl compact">
+      <thead><tr><th>Item</th><th class="num">Price</th><th class="num">Qty</th><th class="num">Sold</th><th class="num">Value</th></tr></thead>
+      <tbody>
+        {% for o in oil %}
+        <tr>
+          <td>{{ o.item }}</td>
+          <td class="num">{{ o.price|money }}</td>
+          <td class="num">{{ o.current|qty }}</td>
+          <td class="num">{{ o.sold|qty }}</td>
+          <td class="num">{{ o.value|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </section>
+</div>
+
+<section class="card">
+  <h2>Recent Fuel Deliveries</h2>
+  <div class="table-scroll">
+  <table class="tbl compact">
+    <thead><tr><th>Date</th><th class="num">Benzine 1</th><th class="num">Benzine 2</th><th class="num">Backup</th><th class="num">Mezout</th><th class="num">Price</th><th class="num">Total $</th></tr></thead>
+    <tbody>
+      {% for d in deliveries %}
+      <tr>
+        <td>{{ d.day }}</td>
+        <td class="num">{{ d.benzine1|qty }}</td>
+        <td class="num">{{ d.benzine2|qty }}</td>
+        <td class="num">{{ d.backup|qty }}</td>
+        <td class="num">{{ d.mezout|qty }}</td>
+        <td class="num">{{ d.price|money }}</td>
+        <td class="num">{{ d.total|money }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="muted">No deliveries recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endblock %}

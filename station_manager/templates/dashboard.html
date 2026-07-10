@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Station Manager{% endblock %}
+{% block content %}
+<h1>Company Dashboard</h1>
+
+{% set t = overview.totals %}
+<section class="kpis">
+  <div class="kpi"><span class="label">Total Cash In</span><span class="value">${{ t.total_in|money }}</span></div>
+  <div class="kpi"><span class="label">Purchases</span><span class="value">${{ t.purchases|money }}</span></div>
+  <div class="kpi"><span class="label">Operating Expenses</span><span class="value">${{ t.expenses|money }}</span></div>
+  <div class="kpi net"><span class="label">Net Result</span><span class="value">${{ t.net|money }}</span></div>
+  <div class="kpi"><span class="label">Operating Days</span><span class="value">{{ t.days }}</span></div>
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Monthly Net Cash</h2>
+    {% set maxnet = (trend | map(attribute='net') | map('abs') | list | max) or 1 %}
+    <div class="barchart">
+      {% for m in trend %}
+        <div class="bar-row">
+          <span class="bar-label">{{ m.month }}</span>
+          <div class="bar-track">
+            <div class="bar-fill {{ 'neg' if m.net < 0 else '' }}"
+                 style="width: {{ (100 * (m.net|abs) / maxnet)|round(1) }}%"></div>
+          </div>
+          <span class="bar-value">${{ m.net|money }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Stations</h2>
+    <table class="tbl">
+      <thead><tr><th>Station</th><th>Days</th><th>Cash In</th><th>Net</th></tr></thead>
+      <tbody>
+        {% for name, s in overview.stations.items() %}
+        <tr>
+          <td><a href="{{ url_for('station', name=name) }}">{{ name }}</a></td>
+          <td>{{ s.days }}</td>
+          <td>${{ s.total_in|money }}</td>
+          <td class="{{ 'pos' if s.net >= 0 else 'neg' }}">${{ s.net|money }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>Current Fuel Stock (litres)</h3>
+    {% for name, s in overview.stations.items() %}
+      <div class="stock-block">
+        <strong>{{ name }}</strong>
+        <ul class="chips">
+          {% for f in s.fuel_stock %}
+            {% if 'Total' not in f.fuel_type and 'GRAND' not in f.fuel_type %}
+            <li>{{ f.fuel_type }}: <b>{{ f.current|qty }}</b></li>
+            {% endif %}
+          {% endfor %}
+          <li>Gas cyl.: <b>{{ s.gas.on_hand|qty }}</b></li>
+        </ul>
+      </div>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

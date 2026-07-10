@@ -1,0 +1,168 @@
+"""
+Database layer for the Station Manager.
+
+Uses the Python standard-library ``sqlite3`` module so the application has no
+heavy ORM dependency. A single SQLite file (``station.db``) holds every table.
+"""
+import os
+import sqlite3
+from contextlib import contextmanager
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "station.db")
+
+# --------------------------------------------------------------------------- #
+# Schema
+# --------------------------------------------------------------------------- #
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS stations (
+    id      INTEGER PRIMARY KEY,
+    name    TEXT UNIQUE NOT NULL
+);
+
+-- One row per operating day per station (mirrors the "Daily <Station>" sheets).
+CREATE TABLE IF NOT EXISTS daily_records (
+    id                  INTEGER PRIMARY KEY,
+    station_id          INTEGER NOT NULL REFERENCES stations(id),
+    day                 TEXT NOT NULL,            -- ISO date (YYYY-MM-DD)
+    price_note          TEXT,
+
+    -- Benzine (gasoline) grade 1 & 2
+    b1_liters           REAL DEFAULT 0,
+    b1_price            REAL DEFAULT 0,
+    b1_total            REAL DEFAULT 0,
+    b2_liters           REAL DEFAULT 0,
+    b2_price            REAL DEFAULT 0,
+    b2_total            REAL DEFAULT 0,
+    benzine_liters      REAL DEFAULT 0,
+    benzine_total       REAL DEFAULT 0,
+
+    -- Mezout (diesel)
+    mezout_liters       REAL DEFAULT 0,
+    mezout_price        REAL DEFAULT 0,
+    mezout_total        REAL DEFAULT 0,
+
+    -- Other income streams
+    oil                 REAL DEFAULT 0,
+    wash                REAL DEFAULT 0,
+    gaz                 REAL DEFAULT 0,
+    fragrance           REAL DEFAULT 0,
+    kiosk               REAL DEFAULT 0,
+    payments            REAL DEFAULT 0,
+    coupon_in           REAL DEFAULT 0,
+    total_in            REAL DEFAULT 0,
+
+    -- Adjustments
+    debts               REAL DEFAULT 0,
+    internal_sale       REAL DEFAULT 0,
+    coupons             REAL DEFAULT 0,
+    difference          REAL DEFAULT 0,
+
+    -- Purchases (cost of goods restocked)
+    purchase_oil        REAL DEFAULT 0,
+    purchase_kiosk      REAL DEFAULT 0,
+    purchase_gaz        REAL DEFAULT 0,
+    other_purchases     REAL DEFAULT 0,
+    total_purchases     REAL DEFAULT 0,
+
+    -- Operating expenses
+    rent                REAL DEFAULT 0,
+    salaries            REAL DEFAULT 0,
+    repairs             REAL DEFAULT 0,
+    utilities           REAL DEFAULT 0,
+    client_satisfaction REAL DEFAULT 0,
+    tips                REAL DEFAULT 0,
+    new_assets          REAL DEFAULT 0,
+    other_expense       REAL DEFAULT 0,
+    total_expense       REAL DEFAULT 0,
+
+    profit_sharing      REAL DEFAULT 0,
+    total_out           REAL DEFAULT 0,
+    daily_total         REAL DEFAULT 0,          -- net cash result for the day
+    notes               TEXT,
+    UNIQUE(station_id, day, price_note)
+);
+
+-- Current on-hand fuel stock per station (from the "BM Stock" summary block).
+CREATE TABLE IF NOT EXISTS fuel_stock (
+    id          INTEGER PRIMARY KEY,
+    station_id  INTEGER NOT NULL REFERENCES stations(id),
+    fuel_type   TEXT NOT NULL,
+    initial     REAL DEFAULT 0,
+    total_out   REAL DEFAULT 0,
+    total_in    REAL DEFAULT 0,
+    current     REAL DEFAULT 0,
+    UNIQUE(station_id, fuel_type)
+);
+
+-- Individual fuel deliveries (the "IN" block of the BM Stock sheets).
+CREATE TABLE IF NOT EXISTS fuel_deliveries (
+    id          INTEGER PRIMARY KEY,
+    station_id  INTEGER NOT NULL REFERENCES stations(id),
+    day         TEXT,
+    benzine1    REAL DEFAULT 0,
+    benzine2    REAL DEFAULT 0,
+    backup      REAL DEFAULT 0,
+    mezout      REAL DEFAULT 0,
+    price       REAL DEFAULT 0,
+    total       REAL DEFAULT 0
+);
+
+-- Oil inventory items.
+CREATE TABLE IF NOT EXISTS oil_stock (
+    id          INTEGER PRIMARY KEY,
+    station_id  INTEGER NOT NULL REFERENCES stations(id),
+    item        TEXT NOT NULL,
+    price       REAL DEFAULT 0,
+    current     REAL DEFAULT 0,
+    sold        REAL DEFAULT 0,
+    restock     REAL DEFAULT 0,
+    value       REAL DEFAULT 0
+);
+
+-- Gas (LPG cylinder) daily movements.
+CREATE TABLE IF NOT EXISTS gas_records (
+    id          INTEGER PRIMARY KEY,
+    station_id  INTEGER NOT NULL REFERENCES stations(id),
+    day         TEXT,
+    available   REAL DEFAULT 0,
+    sold        REAL DEFAULT 0,
+    restock     REAL DEFAULT 0
+);
+"""
+
+
+def get_conn():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+@contextmanager
+def cursor():
+    conn = get_conn()
+    try:
+        yield conn.cursor()
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def init_db():
+    with cursor() as cur:
+        cur.executescript(SCHEMA)
+
+
+def reset_db():
+    """Drop the SQLite file entirely (used before a fresh import)."""
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
+    init_db()
+
+
+def get_or_create_station(name):
+    with cursor() as cur:
+        cur.execute("INSERT OR IGNORE INTO stations(name) VALUES (?)", (name,))
+        cur.execute("SELECT id FROM stations WHERE name = ?", (name,))
+        return cur.fetchone()["id"]

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<h1>Monthly Report</h1>
+<p class="muted">Net cash result per station, by month.</p>
+
+<div class="table-scroll">
+<table class="tbl">
+  <thead>
+    <tr>
+      <th>Month</th>
+      {% for s in stations %}<th class="num">{{ s.name }} In</th><th class="num">{{ s.name }} Net</th>{% endfor %}
+      <th class="num">Total Net</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in months %}
+    {% set row_total = namespace(v=0) %}
+    <tr>
+      <td>{{ m }}</td>
+      {% for s in stations %}
+        {% set cell = data[s.name].get(m) %}
+        <td class="num">{{ (cell.income if cell else 0)|money }}</td>
+        <td class="num {{ 'pos' if cell and cell.net >= 0 else ('neg' if cell else '') }}">
+          {{ (cell.net if cell else 0)|money }}</td>
+        {% if cell %}{% set row_total.v = row_total.v + cell.net %}{% endif %}
+      {% endfor %}
+      <td class="num {{ 'pos' if row_total.v >= 0 else 'neg' }}"><b>{{ row_total.v|money }}</b></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

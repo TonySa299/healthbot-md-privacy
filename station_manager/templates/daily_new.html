@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}New day · {{ st.name }}{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ st.name }} — New Daily Record</h1></div>
+<p class="muted">Totals (benzine, cash-in, purchases, expenses, net) are computed automatically on save.</p>
+
+<form method="post" class="entry-form">
+  <div class="form-grid">
+    <label class="wide">Date
+      <input type="date" name="day" required>
+    </label>
+    <label class="wide">Price change note (optional)
+      <input type="text" name="price_note" placeholder="e.g. Post Price">
+    </label>
+  </div>
+
+  <fieldset>
+    <legend>Income</legend>
+    <div class="form-grid">
+      {% for field, label in income_fields %}
+        <label>{{ label }}
+          <input type="number" step="any" name="{{ field }}" value="0">
+        </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Purchases (restock cost)</legend>
+    <div class="form-grid">
+      {% for field, label in purchase_fields %}
+        <label>{{ label }}
+          <input type="number" step="any" name="{{ field }}" value="0">
+        </label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Expenses</legend>
+    <div class="form-grid">
+      {% for field, label in expense_fields %}
+        <label>{{ label }}
+          <input type="number" step="any" name="{{ field }}" value="0">
+        </label>
+      {% endfor %}
+      <label>Profit sharing
+        <input type="number" step="any" name="profit_sharing" value="0">
+      </label>
+      <label>Debts (unpaid)
+        <input type="number" step="any" name="debts" value="0">
+      </label>
+    </div>
+  </fieldset>
+
+  <label class="wide">Notes
+    <textarea name="notes" rows="2"></textarea>
+  </label>
+
+  <div class="actions">
+    <button type="submit" class="btn primary">Save record</button>
+    <a class="btn" href="{{ url_for('daily', name=st.name) }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ st.name }} daily ledger{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ st.name }} — Daily Ledger</h1>
+  <div class="actions">
+    <a class="btn primary" href="{{ url_for('daily_new', name=st.name) }}">+ New day</a>
+  </div>
+</div>
+
+<form method="get" class="filterbar">
+  <label>Month
+    <select name="month" onchange="this.form.submit()">
+      <option value="">All</option>
+      {% for m in months %}
+        <option value="{{ m }}" {{ 'selected' if m == month else '' }}>{{ m }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <noscript><button type="submit">Filter</button></noscript>
+</form>
+
+<div class="table-scroll">
+<table class="tbl compact">
+  <thead>
+    <tr>
+      <th>Date</th><th>Note</th>
+      <th class="num">Benzine $</th><th class="num">Mezout $</th>
+      <th class="num">Other $</th><th class="num">Cash In</th>
+      <th class="num">Purchases</th><th class="num">Expenses</th>
+      <th class="num">Net</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    {% set other = r.oil + r.wash + r.gaz + r.fragrance + r.kiosk + r.payments + r.coupon_in %}
+    <tr>
+      <td>{{ r.day }}</td>
+      <td class="muted small">{{ r.price_note or '' }}</td>
+      <td class="num">{{ r.benzine_total|money }}</td>
+      <td class="num">{{ r.mezout_total|money }}</td>
+      <td class="num">{{ other|money }}</td>
+      <td class="num">{{ r.total_in|money }}</td>
+      <td class="num">{{ r.total_purchases|money }}</td>
+      <td class="num">{{ r.total_expense|money }}</td>
+      <td class="num {{ 'pos' if r.daily_total >= 0 else 'neg' }}">{{ r.daily_total|money }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="9" class="muted">No records.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="muted small">Showing up to 400 most-recent rows.</p>
+{% endblock %}

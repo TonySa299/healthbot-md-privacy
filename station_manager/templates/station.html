@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ st.name }} · Station Manager{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ st.name }}</h1>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('daily', name=st.name) }}">Daily ledger</a>
+    <a class="btn" href="{{ url_for('inventory', name=st.name) }}">Inventory</a>
+    <a class="btn primary" href="{{ url_for('daily_new', name=st.name) }}">+ New day</a>
+  </div>
+</div>
+<p class="muted">{{ s.days }} operating days · {{ s.first_day }} → {{ s.last_day }}</p>
+
+<section class="kpis">
+  <div class="kpi"><span class="label">Cash In</span><span class="value">${{ s.total_in|money }}</span></div>
+  <div class="kpi"><span class="label">Purchases</span><span class="value">${{ s.purchases|money }}</span></div>
+  <div class="kpi"><span class="label">Expenses</span><span class="value">${{ s.expenses|money }}</span></div>
+  <div class="kpi"><span class="label">Outstanding Debts</span><span class="value">${{ s.debts|money }}</span></div>
+  <div class="kpi net"><span class="label">Net Result</span><span class="value">${{ s.net|money }}</span></div>
+</section>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Revenue Mix</h2>
+    <div class="barchart">
+      {% for name, val, pct in breakdown %}
+      <div class="bar-row">
+        <span class="bar-label">{{ name }}</span>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ pct|round(1) }}%"></div></div>
+        <span class="bar-value">${{ val|money }} <em>({{ pct|round(1) }}%)</em></span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3>Fuel Volumes Sold (litres)</h3>
+    <ul class="chips">
+      <li>Benzine 1: <b>{{ s.b1_liters|qty }}</b></li>
+      <li>Benzine 2: <b>{{ s.b2_liters|qty }}</b></li>
+      <li>Mezout: <b>{{ s.mezout_liters|qty }}</b></li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Monthly Net</h2>
+    {% set maxnet = (trend | map(attribute='net') | map('abs') | list | max) or 1 %}
+    <div class="barchart">
+      {% for m in trend %}
+      <div class="bar-row">
+        <span class="bar-label">{{ m.month }}</span>
+        <div class="bar-track">
+          <div class="bar-fill {{ 'neg' if m.net < 0 else '' }}"
+               style="width: {{ (100 * (m.net|abs) / maxnet)|round(1) }}%"></div>
+        </div>
+        <span class="bar-value">${{ m.net|money }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <h3>Inventory Snapshot</h3>
+    <table class="tbl">
+      <tbody>
+        {% for f in fuel %}
+          {% if 'Total' not in f.fuel_type and 'GRAND' not in f.fuel_type %}
+          <tr><td>{{ f.fuel_type }} (L)</td><td class="num">{{ f.current|qty }}</td></tr>
+          {% endif %}
+        {% endfor %}
+        <tr><td>Gas cylinders on hand</td><td class="num">{{ gas.on_hand|qty }}</td></tr>
+        <tr><td>Oil stock value</td><td class="num">${{ oil.value|money }}</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

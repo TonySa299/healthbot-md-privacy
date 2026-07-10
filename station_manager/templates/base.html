@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Station Manager{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><a href="{{ url_for('dashboard') }}">⛽ Station Manager</a></div>
+  <nav>
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    {% for s in nav_stations %}
+      <a href="{{ url_for('station', name=s) }}">{{ s }}</a>
+    {% endfor %}
+    <a href="{{ url_for('reports') }}">Reports</a>
+  </nav>
+  <form method="post" action="{{ url_for('reimport') }}" class="reimport"
+        onsubmit="return confirm('Re-import overwrites the database with the workbook. Continue?')">
+    <button type="submit" title="Reload from Excel workbook">↻ Re-import</button>
+  </form>
+</header>
+
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash {{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <span>Station Manager · fuel-station cash &amp; inventory system</span>
+</footer>
+</body>
+</html>
