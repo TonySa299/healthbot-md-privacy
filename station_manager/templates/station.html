@@ -5,6 +5,8 @@
   <h1>{{ st.name }}</h1>
   <div class="actions">
     <a class="btn" href="{{ url_for('daily', name=st.name) }}">Daily ledger</a>
+    <a class="btn" href="{{ url_for('odometers', name=st.name) }}">Odometers</a>
+    <a class="btn" href="{{ url_for('deliveries', name=st.name) }}">Restocks</a>
     <a class="btn" href="{{ url_for('inventory', name=st.name) }}">Inventory</a>
     <a class="btn primary" href="{{ url_for('daily_new', name=st.name) }}">+ New day</a>
   </div>
@@ -14,9 +16,18 @@
 <section class="kpis">
   <div class="kpi"><span class="label">Cash In</span><span class="value">${{ s.total_in|money }}</span></div>
   <div class="kpi"><span class="label">Purchases</span><span class="value">${{ s.purchases|money }}</span></div>
+  <div class="kpi"><span class="label">Fuel Goods Cost</span><span class="value">${{ margin.cost|money }}</span></div>
   <div class="kpi"><span class="label">Expenses</span><span class="value">${{ s.expenses|money }}</span></div>
-  <div class="kpi"><span class="label">Outstanding Debts</span><span class="value">${{ s.debts|money }}</span></div>
   <div class="kpi net"><span class="label">Net Result</span><span class="value">${{ s.net|money }}</span></div>
+</section>
+
+<section class="card margin-card">
+  <h2>Fuel Gross Margin</h2>
+  <div class="margin-row">
+    <div><span class="label">Fuel revenue</span><b>${{ margin.revenue|money }}</b></div>
+    <div><span class="label">− Goods cost (restocks)</span><b>${{ margin.cost|money }}</b></div>
+    <div class="{{ 'pos' if margin.margin >= 0 else 'neg' }}"><span class="label">= Gross margin</span><b>${{ margin.margin|money }}</b></div>
+  </div>
 </section>
 
 <div class="grid-2">

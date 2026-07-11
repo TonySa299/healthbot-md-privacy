@@ -95,6 +95,25 @@ CREATE TABLE IF NOT EXISTS fuel_stock (
     UNIQUE(station_id, fuel_type)
 );
 
+-- Pump odometer readings. Each fuel is dispensed through two counters (A & B);
+-- litres sold = (A + B today) - (A + B on the previous reading).
+CREATE TABLE IF NOT EXISTS odometer_readings (
+    id          INTEGER PRIMARY KEY,
+    station_id  INTEGER NOT NULL REFERENCES stations(id),
+    day         TEXT NOT NULL,
+    price_note  TEXT,
+    b1_a        REAL DEFAULT 0,
+    b1_b        REAL DEFAULT 0,
+    b2_a        REAL DEFAULT 0,
+    b2_b        REAL DEFAULT 0,
+    mez_a       REAL DEFAULT 0,
+    mez_b       REAL DEFAULT 0,
+    b1_liters   REAL DEFAULT 0,          -- computed at entry time
+    b2_liters   REAL DEFAULT 0,
+    mez_liters  REAL DEFAULT 0,
+    is_initial  INTEGER DEFAULT 0        -- 1 = baseline row, no sale computed
+);
+
 -- Individual fuel deliveries (the "IN" block of the BM Stock sheets).
 CREATE TABLE IF NOT EXISTS fuel_deliveries (
     id          INTEGER PRIMARY KEY,

@@ -87,4 +87,20 @@ h3{font-size:.95rem;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppe
   border:1px solid var(--line);border-radius:6px;padding:.45rem .5rem;font-size:.95rem}
 .entry-form input:focus,.entry-form textarea:focus{outline:none;border-color:var(--accent)}
 
+.prevbox{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:.6rem .9rem;margin:.5rem 0 1rem;font-size:.88rem}
+.prevbox strong{color:var(--accent)}
+.restock-line{border-top:1px dashed var(--line);padding-top:.6rem;margin-top:.4rem}
+.restock-line:first-of-type{border-top:none;padding-top:0;margin-top:0}
+.inline-form{margin-bottom:1.2rem}
+.inline-form .align-end{justify-content:flex-end}
+.entry-form select{background:var(--panel2);color:var(--text);border:1px solid var(--line);
+  border-radius:6px;padding:.45rem .5rem;font-size:.95rem}
+.margin-card{max-width:640px}
+.margin-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+.margin-row>div{display:flex;flex-direction:column;gap:.25rem}
+.margin-row .label{color:var(--muted);font-size:.8rem}
+.margin-row b{font-size:1.15rem}
+@media(max-width:640px){.margin-row{grid-template-columns:1fr}}
+
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.5rem;border-top:1px solid var(--line)}

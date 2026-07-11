@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ st.name }} fuel restocks{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ st.name }} — Fuel Restocks</h1>
+  <div class="kpi net"><span class="label">Cost of Goods (fuel)</span><span class="value">${{ cost|money }}</span></div>
+</div>
+<p class="muted">Every delivery's <b>litres × price</b> accumulates into the cost of goods.</p>
+
+<form method="post" class="entry-form inline-form">
+  <div class="form-grid">
+    <label>Date<input type="date" name="day" required></label>
+    <label>Fuel
+      <select name="fuel_type" required>
+        {% for t in stock_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Litres<input type="number" step="any" name="qty" value="0" required></label>
+    <label>Price / L<input type="number" step="any" name="price" value="0" required></label>
+    <label class="align-end"><button type="submit" class="btn primary">Add delivery</button></label>
+  </div>
+</form>
+
+<div class="table-scroll">
+<table class="tbl compact">
+  <thead>
+    <tr><th>Date</th><th class="num">Benzine 1</th><th class="num">Benzine 2</th>
+      <th class="num">Backup</th><th class="num">Mezout</th>
+      <th class="num">Price</th><th class="num">Cost</th></tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.day or '' }}</td>
+      <td class="num">{{ r.benzine1|qty }}</td>
+      <td class="num">{{ r.benzine2|qty }}</td>
+      <td class="num">{{ r.backup|qty }}</td>
+      <td class="num">{{ r.mezout|qty }}</td>
+      <td class="num">{{ r.price|money }}</td>
+      <td class="num">{{ r.total|money }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7" class="muted">No deliveries recorded.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="muted small">Showing up to 200 most-recent deliveries.</p>
+{% endblock %}

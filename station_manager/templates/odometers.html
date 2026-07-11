@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ st.name }} odometers{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ st.name }} — Odometer Readings</h1>
+  <div class="actions"><a class="btn primary" href="{{ url_for('daily_new', name=st.name) }}">+ New day</a></div>
+</div>
+<p class="muted">Each fuel is read from two pumps (A &amp; B). Litres sold =
+(A + B today) − previous reading.</p>
+
+<div class="table-scroll">
+<table class="tbl compact">
+  <thead>
+    <tr>
+      <th>Date</th><th>Note</th>
+      <th class="num">B1 A</th><th class="num">B1 B</th>
+      <th class="num">B2 A</th><th class="num">B2 B</th>
+      <th class="num">Mez A</th><th class="num">Mez B</th>
+      <th class="num">B1 L</th><th class="num">B2 L</th><th class="num">Mez L</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in rows %}
+    <tr class="{{ 'total-row' if r.is_initial else '' }}">
+      <td>{{ 'Initial' if r.is_initial else r.day }}</td>
+      <td class="muted small">{{ r.price_note or '' }}</td>
+      <td class="num">{{ r.b1_a|qty }}</td><td class="num">{{ r.b1_b|qty }}</td>
+      <td class="num">{{ r.b2_a|qty }}</td><td class="num">{{ r.b2_b|qty }}</td>
+      <td class="num">{{ r.mez_a|qty }}</td><td class="num">{{ r.mez_b|qty }}</td>
+      <td class="num">{{ r.b1_liters|qty }}</td>
+      <td class="num">{{ r.b2_liters|qty }}</td>
+      <td class="num">{{ r.mez_liters|qty }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

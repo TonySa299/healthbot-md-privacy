@@ -2,36 +2,57 @@
 {% block title %}New day · {{ st.name }}{% endblock %}
 {% block content %}
 <div class="page-head"><h1>{{ st.name }} — New Daily Record</h1></div>
-<p class="muted">Totals (benzine, cash-in, purchases, expenses, net) are computed automatically on save.</p>
+<p class="muted">Enter the pump odometers, prices, other sales, expenses and any
+fuel restocks. Litres sold and every total are calculated on save.</p>
+
+{% if prev %}
+<div class="prevbox">
+  <strong>Previous reading</strong>
+  {% if prev.day == 'initial' %}(initial baseline){% else %}({{ prev.day }}{% if prev.price_note %} · {{ prev.price_note }}{% endif %}){% endif %}:
+  B1 {{ prev.b1_a|qty }}/{{ prev.b1_b|qty }} ·
+  B2 {{ prev.b2_a|qty }}/{{ prev.b2_b|qty }} ·
+  Mez {{ prev.mez_a|qty }}/{{ prev.mez_b|qty }}
+</div>
+{% else %}
+<div class="flash error">No previous odometer reading found — litres cannot be computed until a baseline exists.</div>
+{% endif %}
 
 <form method="post" class="entry-form">
   <div class="form-grid">
-    <label class="wide">Date
-      <input type="date" name="day" required>
-    </label>
+    <label class="wide">Date <input type="date" name="day" required></label>
     <label class="wide">Price change note (optional)
       <input type="text" name="price_note" placeholder="e.g. Post Price">
     </label>
   </div>
 
   <fieldset>
-    <legend>Income</legend>
+    <legend>Pump odometers</legend>
     <div class="form-grid">
-      {% for field, label in income_fields %}
+      {% for field, label in odometer_fields %}
         <label>{{ label }}
-          <input type="number" step="any" name="{{ field }}" value="0">
+          <input type="number" step="any" name="{{ field }}"
+                 value="{{ (prev[field] if prev else 0)|round(0, 'floor')|int }}">
         </label>
+      {% endfor %}
+    </div>
+    <p class="muted small">Pre-filled with the last reading — overwrite with today's meters.
+      Litres = (pump A + pump B) − previous reading.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Prices (per litre)</legend>
+    <div class="form-grid">
+      {% for field, label in price_fields %}
+        <label>{{ label }}<input type="number" step="any" name="{{ field }}" value="0"></label>
       {% endfor %}
     </div>
   </fieldset>
 
   <fieldset>
-    <legend>Purchases (restock cost)</legend>
+    <legend>Other sales</legend>
     <div class="form-grid">
-      {% for field, label in purchase_fields %}
-        <label>{{ label }}
-          <input type="number" step="any" name="{{ field }}" value="0">
-        </label>
+      {% for field, label in income_fields %}
+        <label>{{ label }}<input type="number" step="any" name="{{ field }}" value="0"></label>
       {% endfor %}
     </div>
   </fieldset>
@@ -40,22 +61,32 @@
     <legend>Expenses</legend>
     <div class="form-grid">
       {% for field, label in expense_fields %}
-        <label>{{ label }}
-          <input type="number" step="any" name="{{ field }}" value="0">
-        </label>
+        <label>{{ label }}<input type="number" step="any" name="{{ field }}" value="0"></label>
       {% endfor %}
-      <label>Profit sharing
-        <input type="number" step="any" name="profit_sharing" value="0">
-      </label>
-      <label>Debts (unpaid)
-        <input type="number" step="any" name="debts" value="0">
-      </label>
+      <label>Profit sharing<input type="number" step="any" name="profit_sharing" value="0"></label>
+      <label>Debts (unpaid)<input type="number" step="any" name="debts" value="0"></label>
     </div>
   </fieldset>
 
-  <label class="wide">Notes
-    <textarea name="notes" rows="2"></textarea>
-  </label>
+  <fieldset>
+    <legend>Fuel restocks (optional) — feed goods cost</legend>
+    <p class="muted small">Deliveries received today. These add to inventory and to
+      the cost of goods; they do <em>not</em> affect the day's net cash.</p>
+    {% for i in [1, 2, 3] %}
+    <div class="form-grid restock-line">
+      <label>Fuel
+        <select name="restock_type_{{ i }}">
+          <option value="">—</option>
+          {% for t in stock_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Litres<input type="number" step="any" name="restock_qty_{{ i }}" value="0"></label>
+      <label>Price / L<input type="number" step="any" name="restock_price_{{ i }}" value="0"></label>
+    </div>
+    {% endfor %}
+  </fieldset>
+
+  <label class="wide">Notes<textarea name="notes" rows="2"></textarea></label>
 
   <div class="actions">
     <button type="submit" class="btn primary">Save record</button>

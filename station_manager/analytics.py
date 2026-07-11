@@ -109,19 +109,49 @@ def oil_value(conn, station_id):
     return dict(row)
 
 
+def cost_of_stock(conn, station_id):
+    """Total money spent restocking fuel = sum of every delivery's cost."""
+    row = conn.execute(
+        "SELECT COALESCE(SUM(total),0) AS c FROM fuel_deliveries WHERE station_id = ?",
+        (station_id,),
+    ).fetchone()
+    return row["c"]
+
+
+def latest_odometer(conn, station_id):
+    """The most recent odometer reading for a station (baseline for the next day)."""
+    row = conn.execute(
+        """SELECT * FROM odometer_readings WHERE station_id = ?
+           ORDER BY id DESC LIMIT 1""",
+        (station_id,),
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def fuel_margin(conn, station_id):
+    """Fuel revenue vs. what fuel restocking cost (a gross-margin indicator)."""
+    s = station_summary(conn, station_id)
+    fuel_rev = s["benzine_rev"] + s["mezout_rev"]
+    cost = cost_of_stock(conn, station_id)
+    return {"revenue": fuel_rev, "cost": cost, "margin": fuel_rev - cost}
+
+
 def company_overview(conn):
     """Consolidated numbers across all stations for the dashboard."""
     stations = _stations(conn)
     per_station = {}
     totals = {"total_in": 0, "purchases": 0, "expenses": 0, "net": 0, "days": 0}
+    totals["cost_of_stock"] = 0
     for sid, name in stations.items():
         s = station_summary(conn, sid)
         s["gas"] = gas_position(conn, sid)
         s["oil"] = oil_value(conn, sid)
         s["fuel_stock"] = fuel_stock(conn, sid)
+        s["cost_of_stock"] = cost_of_stock(conn, sid)
         per_station[name] = {"id": sid, **s}
-        for k in totals:
+        for k in ("total_in", "purchases", "expenses", "net", "days"):
             totals[k] += s.get(k, 0) or 0
+        totals["cost_of_stock"] += s["cost_of_stock"]
     return {"stations": per_station, "totals": totals}
 
 

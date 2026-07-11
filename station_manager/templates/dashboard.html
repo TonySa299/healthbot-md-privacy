@@ -6,7 +6,7 @@
 {% set t = overview.totals %}
 <section class="kpis">
   <div class="kpi"><span class="label">Total Cash In</span><span class="value">${{ t.total_in|money }}</span></div>
-  <div class="kpi"><span class="label">Purchases</span><span class="value">${{ t.purchases|money }}</span></div>
+  <div class="kpi"><span class="label">Fuel Goods Cost</span><span class="value">${{ t.cost_of_stock|money }}</span></div>
   <div class="kpi"><span class="label">Operating Expenses</span><span class="value">${{ t.expenses|money }}</span></div>
   <div class="kpi net"><span class="label">Net Result</span><span class="value">${{ t.net|money }}</span></div>
   <div class="kpi"><span class="label">Operating Days</span><span class="value">{{ t.days }}</span></div>

@@ -15,13 +15,30 @@ two stations. This app consolidates all of that into one dashboard.
   result), a monthly net-cash chart, and current fuel/gas stock per station.
 - **Per-station view** — headline financials, revenue mix by product, monthly
   trend, fuel volumes sold, and an inventory snapshot.
-- **Daily ledger** — browse every operating day (filterable by month) and add
-  new records through a form. Benzine, cash-in, purchase, expense and net totals
-  are computed automatically on save, exactly like the spreadsheet formulas.
-- **Inventory** — fuel stock levels, recent fuel deliveries, oil stock with
-  values, and the LPG gas position.
+- **Odometer-driven daily entry** — you enter the six pump counters (two per
+  fuel), the prices, other sales, expenses and any fuel restocks. The app
+  computes **litres sold = (pump A + pump B today) − previous reading** for each
+  fuel, then every revenue and net total — mirroring the ODOMETERS sheets.
+- **Fuel restocks & goods cost** — log each delivery (litres × price). The
+  running **Cost of Goods** is the sum of every delivery, exactly like the
+  workbook's "Cost of Stock". Restocks also top up live inventory.
+- **Daily ledger** — browse every operating day (filterable by month).
+- **Odometer history** — every reading with the litres it produced.
+- **Inventory** — live fuel stock (drawn down by sales, topped up by restocks),
+  oil stock with values, and the LPG gas position.
+- **Fuel gross margin** — fuel revenue minus goods cost, per station.
 - **Monthly report** — net result per station per month, side by side.
 - **Re-import** — reload everything from the Excel workbook with one click.
+
+## Daily workflow
+
+1. Open a station → **+ New day**.
+2. The form shows the previous odometer reading and pre-fills the counters.
+3. Type today's meter readings, the per-litre prices, other sales and expenses.
+4. Optionally add fuel deliveries received that day (litres + price).
+5. Save — litres, revenue, cost of goods, net cash and inventory all update.
+
+Fuel deliveries can also be managed on their own **Restocks** page.
 
 ## Quick start
 

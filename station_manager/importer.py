@@ -168,30 +168,91 @@ def import_fuel_stock(wb, station, station_id):
         stock_rows += 1
 
     # Deliveries block (IN): Date | Benzine1 | Benzine2 | Backup | Mezout | Price | Total
-    # Columns H..N in both sheets.
+    # Columns H..N. A row counts as a delivery when it carries a price and at
+    # least one quantity. Some rows share the date of the row above (blank date
+    # cell), so the last seen date is carried forward. Total is recomputed as
+    # (sum of litres) * price to match the sheet's N column exactly.
+    # The block ends at a row whose date cell reads 'Total' (the SUM row); we
+    # take each delivery's Total straight from column N so the cost of stock
+    # reconciles exactly with the sheet's SUM(N).
     deliveries = 0
+    last_day = None
     for r in range(3, ws.max_row + 1):
         d = ws.cell(r, 8).value  # column H
-        if not isinstance(d, datetime.datetime):
+        if isinstance(d, datetime.datetime):
+            last_day = d.date().isoformat()
+        elif _norm(d) == "total":
+            break
+        total = ws.cell(r, 14).value  # column N
+        if not isinstance(total, (int, float)):
             continue
+        price = _num(ws.cell(r, 13).value)  # column M (occasionally blank)
+        b1, b2, backup, mez = (_num(ws.cell(r, c).value) for c in range(9, 13))
         with cursor() as cur:
             cur.execute(
                 """INSERT INTO fuel_deliveries
                    (station_id, day, benzine1, benzine2, backup, mezout, price, total)
                    VALUES (?,?,?,?,?,?,?,?)""",
-                (
-                    station_id,
-                    d.date().isoformat(),
-                    _num(ws.cell(r, 9).value),
-                    _num(ws.cell(r, 10).value),
-                    _num(ws.cell(r, 11).value),
-                    _num(ws.cell(r, 12).value),
-                    _num(ws.cell(r, 13).value),
-                    _num(ws.cell(r, 14).value),
-                ),
+                (station_id, last_day, b1, b2, backup, mez, price, float(total)),
             )
         deliveries += 1
     return stock_rows, deliveries
+
+
+def import_odometers(wb, station, station_id):
+    ws = wb[f"ODOMETERS {station}"]
+    # Header row: the row whose first cell reads 'Date'.
+    header_row = None
+    for r in range(1, 6):
+        if _norm(ws.cell(r, 1).value) == "date":
+            header_row = r
+            break
+    if header_row is None:
+        return 0
+
+    # Columns C..H are the six counters (B1 A/B, B2 A/B, Mezout A/B). Columns
+    # J/K/L hold the sheet's own computed litres, which already incorporate two
+    # manual meter-reset corrections, so we import those figures directly rather
+    # than recompute (a naive delta would go wildly negative across a reset).
+    C = {"b1_a": 3, "b1_b": 4, "b2_a": 5, "b2_b": 6, "mez_a": 7, "mez_b": 8}
+    LITRE_COL = {"b1_liters": 10, "b2_liters": 11, "mez_liters": 12}
+
+    count = 0
+    for r in range(header_row + 1, ws.max_row + 1):
+        first = ws.cell(r, 1).value
+        is_initial = _norm(first) == "initial odo"
+        if not is_initial and not isinstance(first, datetime.datetime):
+            continue
+
+        reading = {k: _num(ws.cell(r, col).value) for k, col in C.items()}
+        # Skip fully empty rows.
+        if not is_initial and not any(reading.values()):
+            continue
+
+        if is_initial:
+            b1_l = b2_l = mez_l = 0.0
+            day = "initial"
+        else:
+            b1_l = _num(ws.cell(r, LITRE_COL["b1_liters"]).value)
+            b2_l = _num(ws.cell(r, LITRE_COL["b2_liters"]).value)
+            mez_l = _num(ws.cell(r, LITRE_COL["mez_liters"]).value)
+            day = first.date().isoformat()
+
+        price_note = ws.cell(r, 2).value
+        with cursor() as cur:
+            cur.execute(
+                """INSERT INTO odometer_readings
+                   (station_id, day, price_note, b1_a, b1_b, b2_a, b2_b, mez_a, mez_b,
+                    b1_liters, b2_liters, mez_liters, is_initial)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (station_id, day,
+                 str(price_note).strip() if price_note else None,
+                 reading["b1_a"], reading["b1_b"], reading["b2_a"], reading["b2_b"],
+                 reading["mez_a"], reading["mez_b"],
+                 b1_l, b2_l, mez_l, 1 if is_initial else 0),
+            )
+        count += 1
+    return count
 
 
 def import_oil_stock(wb, station, station_id):
@@ -279,12 +340,14 @@ def run_import(verbose=True):
         sid = get_or_create_station(station)
         daily = import_daily(wb, station, sid)
         stock, deliveries = import_fuel_stock(wb, station, sid)
+        odometers = import_odometers(wb, station, sid)
         oil = import_oil_stock(wb, station, sid)
         gas = import_gas(wb, station, sid)
         summary[station] = {
             "daily": daily,
             "fuel_stock": stock,
             "deliveries": deliveries,
+            "odometers": odometers,
             "oil_items": oil,
             "gas_records": gas,
         }
