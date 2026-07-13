@@ -401,18 +401,36 @@ def inject_nav():
 
 
 def ensure_data():
-    """Create the DB and import the workbook on first run."""
-    first_run = not os.path.exists(DB_PATH)
+    """Create the DB and import the workbook when data is missing.
+
+    Re-imports when either the daily records OR the odometer readings are
+    empty, so a database created by an earlier version (which had no odometer
+    table populated) heals itself instead of showing empty odometers.
+    """
     init_db()
     conn = get_conn()
-    has_rows = conn.execute("SELECT COUNT(*) c FROM daily_records").fetchone()["c"]
-    if first_run or not has_rows:
+    daily = conn.execute("SELECT COUNT(*) c FROM daily_records").fetchone()["c"]
+    odo = conn.execute("SELECT COUNT(*) c FROM odometer_readings").fetchone()["c"]
+    if daily == 0 or odo == 0:
         try:
             run_import(verbose=False)
         except FileNotFoundError:
             pass
 
 
+def _open_browser(url):
+    import threading
+    import webbrowser
+    threading.Timer(1.2, lambda: webbrowser.open(url)).start()
+
+
 if __name__ == "__main__":
     ensure_data()
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    host, port = "127.0.0.1", 5000
+    # Open the app in the default browser automatically (skip the Flask reloader's
+    # duplicate child process so it only opens once).
+    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        print(f"\n  Station Manager is running.  Open:  http://{host}:{port}\n"
+              f"  (Keep this window open while you use the app. Close it to stop.)\n")
+        _open_browser(f"http://{host}:{port}")
+    app.run(host=host, port=port, debug=False)

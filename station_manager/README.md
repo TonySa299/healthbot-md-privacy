@@ -40,7 +40,23 @@ two stations. This app consolidates all of that into one dashboard.
 
 Fuel deliveries can also be managed on their own **Restocks** page.
 
-## Quick start
+## Just double-click to start (no coding)
+
+| Your computer | Double-click this file |
+|---------------|------------------------|
+| **Windows**   | `Start Station Manager.bat` |
+| **Mac**       | `Start Station Manager.command` |
+
+The first time, it spends about a minute setting itself up; after that it opens
+instantly **in your web browser**. Keep the little black window open while you
+use the app — closing it stops the app. That's it.
+
+> One-time requirement: **Python 3** must be installed. Most Macs already have
+> it. On Windows, if the launcher says it's missing, install it from
+> <https://www.python.org/downloads/> and **tick "Add Python to PATH"** during
+> setup — you only ever do this once.
+
+### Start from a terminal instead (optional)
 
 ```bash
 cd station_manager
@@ -48,10 +64,9 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Then open <http://127.0.0.1:5000>.
-
-On first launch the app creates a local SQLite database (`station.db`) and
-imports `data/General_Cashflow.xlsx` automatically.
+On first launch the app creates a local database (`station.db`) and imports
+`data/General_Cashflow.xlsx` automatically, then opens
+<http://127.0.0.1:5000>.
 
 ## Updating from Excel
 
