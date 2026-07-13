@@ -1,14 +1,14 @@
 /* ==========================================================================
    Station Manager — APEC (Arabian Petroleum Company) theme
-   Brand colours: APEC red + APEC green on a clean light background.
+   Real brand palette: deep APEC red + black canopy + white, cursive wordmark.
    ========================================================================== */
 :root{
-  --bg:#eef1f4; --panel:#ffffff; --panel2:#f5f7f9; --line:#dde3e9;
-  --text:#16202c; --muted:#66727f;
-  --red:#c8102e; --red-dark:#a30d24; --red-soft:#fbe7ea;
-  --green:#00843d; --green-dark:#046a33; --green-soft:#e4f4ea;
-  --accent:#c8102e; --accent2:#00843d;
-  --pos:#1a8a3d; --neg:#c8102e; --brand:#c8102e;
+  --bg:#f1f2f4; --panel:#ffffff; --panel2:#f5f6f8; --line:#dcdfe4;
+  --text:#17202a; --muted:#66707b;
+  --red:#b11217; --red-dark:#8c0d11; --red-soft:#f8e6e7;
+  --black:#151a1f; --black-2:#20272e;
+  --accent:#b11217; --accent2:#151a1f;
+  --pos:#17202a; --neg:#b11217; --brand:#b11217;
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
@@ -17,20 +17,19 @@ a{color:var(--red);text-decoration:none}
 a:hover{text-decoration:underline}
 
 .topbar{display:flex;align-items:center;gap:1.25rem;padding:.7rem 1.25rem;
-  background:var(--panel);border-bottom:3px solid var(--red);flex-wrap:wrap;
-  box-shadow:0 1px 4px rgba(0,0,0,.05)}
-.brand a{display:inline-flex;align-items:center;gap:.5rem;font-weight:800;
-  font-size:1.2rem;color:var(--text)}
-.brand .apec{background:var(--red);color:#fff;padding:.12rem .5rem;border-radius:5px;
-  letter-spacing:.06em;font-weight:800}
-.brand .apec::after{content:"";display:inline-block;width:.42rem;height:.42rem;
-  background:var(--green);border-radius:50%;margin-left:.34rem;vertical-align:middle}
+  background:var(--black);border-bottom:3px solid var(--red);flex-wrap:wrap;
+  box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.brand a{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;
+  font-size:1.15rem;color:#fff}
+.brand .apec{background:var(--red);color:#fff;padding:.1rem .6rem .18rem;border-radius:6px;
+  font-family:"Segoe Script","Brush Script MT","Comic Sans MS",cursive;
+  font-size:1.5rem;font-weight:700;line-height:1;letter-spacing:.01em}
 .topbar nav{display:flex;gap:1rem;flex:1;flex-wrap:wrap}
-.topbar nav a{color:var(--text);font-weight:500}
-.topbar nav a:hover{color:var(--red)}
-.reimport button{background:transparent;border:1px solid var(--line);color:var(--muted);
+.topbar nav a{color:#e7e9ec;font-weight:500}
+.topbar nav a:hover{color:#fff;text-decoration:none}
+.reimport button{background:transparent;border:1px solid #3a434c;color:#c7ccd2;
   padding:.35rem .6rem;border-radius:6px;cursor:pointer}
-.reimport button:hover{color:var(--red);border-color:var(--red)}
+.reimport button:hover{color:#fff;border-color:var(--red);background:var(--red)}
 
 main{max-width:1100px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
 h1{margin:.2rem 0 1rem;font-size:1.6rem}
@@ -52,24 +51,25 @@ h3{font-size:.95rem;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppe
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem;margin:1rem 0 1.5rem}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:.9rem 1rem;
   display:flex;flex-direction:column;gap:.3rem;border-top:3px solid var(--red);
-  box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .kpi .label{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.03em}
 .kpi .value{font-size:1.35rem;font-weight:700}
-.kpi.net{border-top-color:var(--green);background:var(--green-soft)}
-.kpi.net .value{color:var(--green-dark)}
+.kpi.net{background:var(--black);border:1px solid var(--black);border-top:3px solid var(--red)}
+.kpi.net .label{color:#aeb4bb}
+.kpi.net .value{color:#fff}
 
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
 @media(max-width:820px){.grid-2{grid-template-columns:1fr}}
 
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;
-  padding:1.1rem 1.2rem;margin-bottom:1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  padding:1.1rem 1.2rem;margin-bottom:1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 
 .barchart{display:flex;flex-direction:column;gap:.4rem}
 .bar-row{display:grid;grid-template-columns:70px 1fr auto;align-items:center;gap:.6rem;font-size:.85rem}
 .bar-label{color:var(--muted)}
 .bar-track{background:var(--panel2);border:1px solid var(--line);border-radius:6px;height:16px;overflow:hidden}
-.bar-fill{height:100%;background:linear-gradient(90deg,var(--green),#3cb371);border-radius:6px;min-width:2px}
-.bar-fill.neg{background:linear-gradient(90deg,var(--red),#e2445c)}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--red),#e0454a);border-radius:6px;min-width:2px}
+.bar-fill.neg{background:linear-gradient(90deg,var(--black),#48535d)}
 .bar-value{font-variant-numeric:tabular-nums;white-space:nowrap}
 .bar-value em{color:var(--muted);font-style:normal;font-size:.8rem}
 
@@ -88,7 +88,7 @@ h3{font-size:.95rem;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppe
 .stock-block{margin-bottom:.6rem}
 
 .flash{padding:.7rem 1rem;border-radius:8px;margin-bottom:1rem;border:1px solid}
-.flash.success{background:var(--green-soft);border-color:var(--green);color:var(--green-dark)}
+.flash.success{background:var(--black);border-color:var(--black);color:#fff}
 .flash.error{background:var(--red-soft);border-color:var(--red);color:var(--red-dark)}
 
 .filterbar{margin:.5rem 0 1rem}
@@ -115,14 +115,14 @@ h3{font-size:.95rem;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppe
   border-radius:6px;padding:.45rem .5rem;font-size:.95rem}
 .litres-out,.revenue-out{display:flex;flex-direction:column;gap:.25rem;font-size:.78rem;color:var(--muted)}
 .litres-val{font-size:1.15rem;font-weight:700;color:var(--red);font-variant-numeric:tabular-nums;padding:.3rem 0}
-.revenue-val{font-size:1.15rem;font-weight:700;color:var(--green-dark);font-variant-numeric:tabular-nums;padding:.3rem 0}
+.revenue-val{font-size:1.15rem;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;padding:.3rem 0}
 .litres-val.warn{color:var(--neg);font-size:.9rem}
 .fuel-total{margin-top:.8rem;padding-top:.7rem;border-top:2px solid var(--line);font-size:.95rem}
-.fuel-total b{color:var(--green-dark)}
+.fuel-total b{color:var(--red)}
 
-.prevbox{background:var(--green-soft);border:1px solid var(--green);border-radius:8px;
+.prevbox{background:#fff;border:1px solid var(--line);border-left:4px solid var(--red);border-radius:8px;
   padding:.6rem .9rem;margin:.5rem 0 1rem;font-size:.88rem}
-.prevbox strong{color:var(--green-dark)}
+.prevbox strong{color:var(--red)}
 .restock-line{border-top:1px dashed var(--line);padding-top:.6rem;margin-top:.4rem}
 .restock-line:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .inline-form{margin-bottom:1.2rem}
@@ -136,4 +136,4 @@ h3{font-size:.95rem;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppe
 @media(max-width:640px){.margin-row{grid-template-columns:1fr}}
 
 footer{text-align:center;color:var(--muted);font-size:.8rem;padding:1.5rem;border-top:1px solid var(--line)}
-footer .apec{color:var(--red);font-weight:700}
+footer .apec{color:var(--red);font-weight:700;font-family:"Segoe Script","Brush Script MT",cursive;font-size:1rem}
