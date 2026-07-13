@@ -1,0 +1,43 @@
+========================================================
+   STATION MANAGER  -  HOW TO START (Windows)
+========================================================
+
+TO OPEN THE APP
+---------------
+1. Double-click the file:  Start Station Manager.bat
+2. The first time only, it sets itself up (a minute or two).
+   - If it says Python is missing, let it install automatically,
+     or install it once from  https://www.python.org/downloads/
+     (tick "Add Python to PATH" during that install).
+3. Your web browser opens with the app. Done!
+
+WHILE YOU USE IT
+----------------
+- A small black window stays open. That is the app's engine.
+- Keep it open while you work.
+- To STOP the app, just close that black window.
+
+
+PUT AN ICON ON YOUR DESKTOP (do this once)
+------------------------------------------
+1. Right-click "Start Station Manager.bat".
+2. Choose  "Show more options"  (Windows 11)  then  "Send to".
+3. Click  "Desktop (create shortcut)".
+4. Now you have an icon on your desktop you can double-click any time.
+
+(Optional) Give the shortcut a nicer icon:
+1. Right-click the new desktop shortcut  ->  Properties.
+2. Click  "Change Icon..."  ->  pick one  ->  OK  ->  OK.
+You can also rename it to just  "Station Manager".
+
+
+EVERYDAY USE
+------------
+- Open the app  ->  choose a station  ->  "+ New day".
+- Type the pump odometers and prices; litres sold are calculated for you.
+- Add other sales, expenses, and any fuel deliveries.
+- Click "Save record".
+
+Your data is stored on this PC in the file  station.db  (inside this folder).
+Keep this whole folder together; don't delete files inside it.
+========================================================
