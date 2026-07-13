@@ -5,11 +5,23 @@ Uses the Python standard-library ``sqlite3`` module so the application has no
 heavy ORM dependency. A single SQLite file (``station.db``) holds every table.
 """
 import os
+import sys
 import sqlite3
 from contextlib import contextmanager
 
+# When packaged as a one-file .exe by PyInstaller, bundled read-only files live
+# in a temporary folder (sys._MEIPASS), while the database must be written to a
+# persistent, writable place — the folder that contains the .exe.
+FROZEN = getattr(sys, "frozen", False)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "station.db")
+BUNDLE_DIR = getattr(sys, "_MEIPASS", BASE_DIR)          # bundled templates/static/data
+DATA_DIR = os.path.dirname(sys.executable) if FROZEN else BASE_DIR  # writable, next to exe
+DB_PATH = os.path.join(DATA_DIR, "station.db")
+
+
+def resource_path(*parts):
+    """Absolute path to a bundled resource (works both normally and frozen)."""
+    return os.path.join(BUNDLE_DIR, *parts)
 
 # --------------------------------------------------------------------------- #
 # Schema

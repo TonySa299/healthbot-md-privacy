@@ -1,0 +1,59 @@
+name: Build Windows App
+
+# Builds a ready-to-run Windows .exe in the cloud and publishes it so it can be
+# downloaded with no Python install required. Runs on every push that touches
+# the app, and can also be started by hand from the Actions tab.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - claude/business-management-program-2ys1ya
+    paths:
+      - 'station_manager/**'
+      - '.github/workflows/build-windows.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: station_manager
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build the .exe
+        working-directory: station_manager
+        run: pyinstaller --noconfirm station_manager.spec
+
+      - name: Upload as a downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Station-Manager-Windows
+          path: station_manager/dist/Station Manager.exe
+
+      - name: Publish to a Release (easy one-click download)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: windows-app
+          name: Station Manager for Windows
+          body: |
+            Ready-to-run Windows app — no Python needed.
+
+            **Download `Station Manager.exe` below, put it in a normal folder
+            (e.g. Documents or Desktop), and double-click it.** Your browser
+            opens with the app. Close the small black window to stop it.
+
+            This build is refreshed automatically each time the app changes.
+          files: station_manager/dist/Station Manager.exe

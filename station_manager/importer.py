@@ -12,13 +12,13 @@ import datetime
 import openpyxl
 
 from db import (
-    BASE_DIR,
+    resource_path,
     reset_db,
     get_or_create_station,
     cursor,
 )
 
-WORKBOOK = os.path.join(BASE_DIR, "data", "General_Cashflow.xlsx")
+WORKBOOK = resource_path("data", "General_Cashflow.xlsx")
 
 STATIONS = ["Halba", "Tekrit"]
 

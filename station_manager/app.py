@@ -21,11 +21,15 @@ from flask import (
     Flask, render_template, request, redirect, url_for, flash, abort
 )
 
-from db import get_conn, init_db, DB_PATH
+from db import get_conn, init_db, DB_PATH, resource_path
 import analytics
 from importer import run_import
 
-app = Flask(__name__)
+# Explicit template/static paths so the app also works when packaged as a
+# single .exe (PyInstaller unpacks these into a temporary bundle folder).
+app = Flask(__name__,
+            template_folder=resource_path("templates"),
+            static_folder=resource_path("static"))
 app.secret_key = "station-manager-local"
 
 # The six pump counters entered on the daily form (A & B per fuel).

@@ -2,8 +2,26 @@
    STATION MANAGER  -  HOW TO START (Windows)
 ========================================================
 
-TO OPEN THE APP
----------------
+EASIEST WAY - the ready-made app (no Python, nothing to install)
+----------------------------------------------------------------
+1. On GitHub, open the repository page and click "Releases"
+   (right-hand side), then the release "Station Manager for Windows".
+2. Download the file  "Station Manager.exe".
+3. Move it into a normal folder such as Documents or Desktop
+   (not "Program Files").
+4. Double-click  "Station Manager.exe".  Your browser opens with the app.
+5. To stop it, close the small black window.
+
+The app remembers your data in a file called  station.db  that it
+creates next to the .exe. Keep them in the same folder.
+
+Windows SmartScreen note: the first time, Windows may show a blue
+"Windows protected your PC" box because the app is new/unsigned.
+Click  "More info"  ->  "Run anyway".  This is normal for small apps.
+
+
+OTHER WAY - the launcher script (needs Python once)
+---------------------------------------------------
 1. Double-click the file:  Start Station Manager.bat
 2. The first time only, it sets itself up (a minute or two).
    - If it says Python is missing, let it install automatically,
