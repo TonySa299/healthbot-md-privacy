@@ -26,26 +26,41 @@ fuel restocks. Litres sold and every total are calculated on save.</p>
   </div>
 
   <fieldset>
-    <legend>Pump odometers</legend>
-    <div class="form-grid">
-      {% for field, label in odometer_fields %}
-        <label>{{ label }}
-          <input type="number" step="any" name="{{ field }}"
-                 value="{{ (prev[field] if prev else 0)|round(0, 'floor')|int }}">
-        </label>
-      {% endfor %}
-    </div>
-    <p class="muted small">Pre-filled with the last reading — overwrite with today's meters.
-      Litres = (pump A + pump B) − previous reading.</p>
-  </fieldset>
+    <legend>Odometers &amp; prices — litres sold are calculated as you type</legend>
+    <p class="muted small">For each fuel, enter the two pump counters (A &amp; B).
+      <b>Litres sold = (pump A + pump B) − previous reading.</b>
+      Counters are pre-filled with the last reading; overwrite with today's meters.</p>
 
-  <fieldset>
-    <legend>Prices (per litre)</legend>
-    <div class="form-grid">
-      {% for field, label in price_fields %}
-        <label>{{ label }}<input type="number" step="any" name="{{ field }}" value="0"></label>
-      {% endfor %}
+    {% set fuels = [
+      ('Benzine 1', 'b1_a', 'b1_b', 'b1_price', 'b1'),
+      ('Benzine 2', 'b2_a', 'b2_b', 'b2_price', 'b2'),
+      ('Mezout',    'mez_a','mez_b','mezout_price', 'mez')
+    ] %}
+    {% for label, fa, fb, fp, key in fuels %}
+    <div class="fuel-row"
+         data-prev-a="{{ prev[fa] if prev else 0 }}"
+         data-prev-b="{{ prev[fb] if prev else 0 }}"
+         data-key="{{ key }}">
+      <div class="fuel-name">{{ label }}
+        <span class="prev-hint">prev {{ (prev[fa] if prev else 0)|qty }} / {{ (prev[fb] if prev else 0)|qty }}</span>
+      </div>
+      <label>Odometer A
+        <input type="number" step="any" name="{{ fa }}" class="odo-a"
+               value="{{ (prev[fa] if prev else 0)|round(0, 'floor')|int }}">
+      </label>
+      <label>Odometer B
+        <input type="number" step="any" name="{{ fb }}" class="odo-b"
+               value="{{ (prev[fb] if prev else 0)|round(0, 'floor')|int }}">
+      </label>
+      <div class="litres-out">Litres sold<span class="litres-val" data-out="{{ key }}">0</span></div>
+      <label>Price / L<input type="number" step="any" name="{{ fp }}" class="price-in" value="0"></label>
+      <div class="revenue-out">Revenue<span class="revenue-val" data-rev="{{ key }}">0.00</span></div>
     </div>
+    {% endfor %}
+
+    <div class="fuel-total">Total litres sold today:
+      <b><span id="total-litres">0</span> L</b> · Fuel revenue:
+      <b>$<span id="total-revenue">0.00</span></b></div>
   </fieldset>
 
   <fieldset>
@@ -93,4 +108,38 @@ fuel restocks. Litres sold and every total are calculated on save.</p>
     <a class="btn" href="{{ url_for('daily', name=st.name) }}">Cancel</a>
   </div>
 </form>
+
+<script>
+(function () {
+  var fmt = function (n) { return n.toLocaleString(undefined, {maximumFractionDigits: 0}); };
+  var money = function (n) { return n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); };
+
+  function recalc() {
+    var totalL = 0, totalRev = 0;
+    document.querySelectorAll('.fuel-row').forEach(function (row) {
+      var prevA = parseFloat(row.dataset.prevA) || 0;
+      var prevB = parseFloat(row.dataset.prevB) || 0;
+      var a = parseFloat(row.querySelector('.odo-a').value) || 0;
+      var b = parseFloat(row.querySelector('.odo-b').value) || 0;
+      var price = parseFloat(row.querySelector('.price-in').value) || 0;
+      var litres = (a + b) - (prevA + prevB);
+      var reset = litres < 0;
+      if (reset) litres = 0;
+      var rev = litres * price;
+      var lo = row.querySelector('.litres-val');
+      lo.textContent = reset ? '0 (meter reset?)' : fmt(litres);
+      lo.classList.toggle('warn', reset);
+      row.querySelector('.revenue-val').textContent = money(rev);
+      totalL += litres; totalRev += rev;
+    });
+    document.getElementById('total-litres').textContent = fmt(totalL);
+    document.getElementById('total-revenue').textContent = money(totalRev);
+  }
+
+  document.querySelectorAll('.fuel-row input').forEach(function (el) {
+    el.addEventListener('input', recalc);
+  });
+  recalc();
+})();
+</script>
 {% endblock %}

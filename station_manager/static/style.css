@@ -87,6 +87,23 @@ h3{font-size:.95rem;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppe
   border:1px solid var(--line);border-radius:6px;padding:.45rem .5rem;font-size:.95rem}
 .entry-form input:focus,.entry-form textarea:focus{outline:none;border-color:var(--accent)}
 
+.fuel-row{display:grid;grid-template-columns:1.2fr 1fr 1fr .9fr .9fr .9fr;gap:.7rem;
+  align-items:end;padding:.7rem 0;border-top:1px dashed var(--line)}
+.fuel-row:first-of-type{border-top:none}
+.fuel-name{font-weight:600;color:var(--text);display:flex;flex-direction:column;gap:.15rem}
+.fuel-name .prev-hint{font-weight:400;color:var(--muted);font-size:.72rem}
+.fuel-row label{display:flex;flex-direction:column;gap:.25rem;font-size:.78rem;color:var(--muted)}
+.fuel-row input{background:var(--panel2);color:var(--text);border:1px solid var(--line);
+  border-radius:6px;padding:.45rem .5rem;font-size:.95rem}
+.litres-out,.revenue-out{display:flex;flex-direction:column;gap:.25rem;font-size:.78rem;color:var(--muted)}
+.litres-val,.revenue-val{font-size:1.15rem;font-weight:700;color:var(--accent2);
+  font-variant-numeric:tabular-nums;padding:.3rem 0}
+.revenue-val{color:var(--pos)}
+.litres-val.warn{color:var(--neg);font-size:.9rem}
+.fuel-total{margin-top:.8rem;padding-top:.7rem;border-top:1px solid var(--line);font-size:.95rem}
+.fuel-total b{color:var(--accent2)}
+@media(max-width:820px){.fuel-row{grid-template-columns:1fr 1fr;}.fuel-name{grid-column:1/-1}}
+
 .prevbox{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
   padding:.6rem .9rem;margin:.5rem 0 1rem;font-size:.88rem}
 .prevbox strong{color:var(--accent)}
