@@ -21,8 +21,9 @@ from flask import (
     Flask, render_template, request, redirect, url_for, flash, abort
 )
 
-from db import get_conn, init_db, DB_PATH, resource_path
+from db import get_conn, init_db, DB_PATH, resource_path, ensure_live_workbook
 import analytics
+import excel_sync
 from importer import run_import
 
 # Explicit template/static paths so the app also works when packaged as a
@@ -290,11 +291,24 @@ def daily_new(name):
             _recompute_stock_aggregates(conn, st["id"])
             conn.commit()
 
+            # Mirror the entry into the Excel workbook (never let this block the
+            # save that already succeeded in the app's own database).
+            synced = True
+            try:
+                excel_sync.append_day(
+                    st["name"], vals, odo,
+                    {"b1": b1_l, "b2": b2_l, "mez": mez_l})
+            except Exception as exc:  # pragma: no cover
+                synced = False
+                flash(f"Saved to the app, but could not update the Excel file: {exc}",
+                      "error")
+
             for w in warnings:
                 flash(w, "error")
             extra = f" · {restocks} restock(s) logged" if restocks else ""
+            xls = " · Excel updated" if synced else ""
             flash(f"Saved {day}: {b1_l:,.0f}/{b2_l:,.0f}/{mez_l:,.0f} L sold, "
-                  f"net ${vals['daily_total']:,.2f}{extra}.", "success")
+                  f"net ${vals['daily_total']:,.2f}{extra}{xls}.", "success")
             return redirect(url_for("daily", name=name))
         except Exception as exc:  # pragma: no cover
             flash(f"Could not save: {exc}", "error")
@@ -411,6 +425,7 @@ def ensure_data():
     empty, so a database created by an earlier version (which had no odometer
     table populated) heals itself instead of showing empty odometers.
     """
+    ensure_live_workbook()
     init_db()
     conn = get_conn()
     daily = conn.execute("SELECT COUNT(*) c FROM daily_records").fetchone()["c"]

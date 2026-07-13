@@ -1,3 +1,7 @@
 __pycache__/
 *.pyc
 station.db
+backups/
+build/
+dist/
+*.spec.bak

@@ -12,13 +12,14 @@ import datetime
 import openpyxl
 
 from db import (
-    resource_path,
+    LIVE_WORKBOOK,
+    ensure_live_workbook,
     reset_db,
     get_or_create_station,
     cursor,
 )
 
-WORKBOOK = resource_path("data", "General_Cashflow.xlsx")
+WORKBOOK = LIVE_WORKBOOK
 
 STATIONS = ["Halba", "Tekrit"]
 
@@ -329,6 +330,7 @@ def import_gas(wb, station, station_id):
 
 
 def run_import(verbose=True):
+    ensure_live_workbook()
     if not os.path.exists(WORKBOOK):
         raise FileNotFoundError(f"Workbook not found: {WORKBOOK}")
 

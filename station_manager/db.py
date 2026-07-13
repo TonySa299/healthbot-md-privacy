@@ -23,6 +23,24 @@ def resource_path(*parts):
     """Absolute path to a bundled resource (works both normally and frozen)."""
     return os.path.join(BUNDLE_DIR, *parts)
 
+
+# The workbook the app reads AND writes back to. When packaged as an .exe the
+# bundled copy is read-only, so the live, writable copy lives next to the exe.
+SEED_WORKBOOK = resource_path("data", "General_Cashflow.xlsx")
+if FROZEN:
+    LIVE_WORKBOOK = os.path.join(DATA_DIR, "General_Cashflow.xlsx")
+else:
+    LIVE_WORKBOOK = os.path.join(BASE_DIR, "data", "General_Cashflow.xlsx")
+BACKUP_DIR = os.path.join(DATA_DIR, "backups")
+
+
+def ensure_live_workbook():
+    """Make sure a writable workbook exists (copy the bundled seed on first run)."""
+    if not os.path.exists(LIVE_WORKBOOK) and os.path.exists(SEED_WORKBOOK):
+        os.makedirs(os.path.dirname(LIVE_WORKBOOK), exist_ok=True)
+        import shutil
+        shutil.copy2(SEED_WORKBOOK, LIVE_WORKBOOK)
+
 # --------------------------------------------------------------------------- #
 # Schema
 # --------------------------------------------------------------------------- #

@@ -28,6 +28,11 @@ two stations. This app consolidates all of that into one dashboard.
   oil stock with values, and the LPG gas position.
 - **Fuel gross margin** — fuel revenue minus goods cost, per station.
 - **Monthly report** — net result per station per month, side by side.
+- **Writes back to Excel** — every day you save is appended to the
+  `Daily <Station>` and `ODOMETERS <Station>` sheets of the workbook, so your
+  spreadsheet stays in sync. A timestamped backup (last 20 kept, in `backups/`)
+  is taken before each write, and a sync problem never blocks saving in the app.
+- **APEC theme** — styled in Arabian Petroleum Company's red-and-green identity.
 - **Re-import** — reload everything from the Excel workbook with one click.
 
 ## Daily workflow
