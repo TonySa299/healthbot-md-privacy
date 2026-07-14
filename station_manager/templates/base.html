@@ -34,5 +34,42 @@
 <footer>
   <span><span class="apec">Apec</span> · Arabian Petroleum Company — station cash &amp; inventory system</span>
 </footer>
+
+<script>
+/* Excel-style cells: any <input class="calc"> accepts arithmetic. Type a value
+   like 1200, or a formula like =1200+300, =500*0.8, =(3812+4127)/2. It is
+   evaluated when you leave the cell and before the form is submitted. */
+window.evalCell = function (raw) {
+  if (raw === null || raw === undefined) return NaN;
+  var s = String(raw).trim().replace(/,/g, '');
+  if (s === '') return 0;
+  if (s[0] === '=') s = s.slice(1).trim();
+  if (/^-?\d*\.?\d+$/.test(s)) return parseFloat(s);          // plain number
+  if (!/^[0-9+\-*/%().\s]+$/.test(s)) return NaN;             // arithmetic only
+  try {
+    var v = Function('"use strict"; return (' + s + ');')();
+    return (typeof v === 'number' && isFinite(v)) ? v : NaN;
+  } catch (e) { return NaN; }
+};
+
+(function () {
+  function apply(el) {
+    var v = window.evalCell(el.value);
+    if (!isNaN(v)) {
+      el.value = String(Math.round(v * 1e6) / 1e6);           // tidy result
+      el.classList.remove('calc-bad');
+    } else if (el.value.trim() !== '') {
+      el.classList.add('calc-bad');                           // flag bad formula
+    }
+    el.dispatchEvent(new Event('recalc', { bubbles: true }));
+  }
+  document.addEventListener('blur', function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains('calc')) apply(e.target);
+  }, true);
+  document.addEventListener('submit', function (e) {
+    e.target.querySelectorAll && e.target.querySelectorAll('input.calc').forEach(apply);
+  }, true);
+})();
+</script>
 </body>
 </html>

@@ -17,6 +17,9 @@ then open http://127.0.0.1:5000
 """
 import os
 
+import ast
+import operator
+
 from flask import (
     Flask, render_template, request, redirect, url_for, flash, abort
 )
@@ -59,6 +62,53 @@ EXPENSE_FIELDS = [
     ("utilities", "Utilities"), ("client_satisfaction", "Client satisf."),
     ("tips", "Tips"), ("new_assets", "New assets"), ("other_expense", "Other"),
 ]
+# Adjustment cells (tracked alongside the day; debts also reduces cash out).
+ADJUSTMENT_FIELDS = [
+    ("debts", "Debts (unpaid)"), ("coupons", "Coupons"),
+    ("internal_sale", "Internal transfer"),
+]
+
+# --------------------------------------------------------------------------- #
+# Excel-style cell input: values may be typed as formulas, e.g. "=1200+300",
+# "=500*0.8", "=(3812+4127)/2". Evaluated safely (arithmetic only, no names).
+# --------------------------------------------------------------------------- #
+_ARITH_OPS = {
+    ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
+    ast.Div: operator.truediv, ast.Pow: operator.pow, ast.Mod: operator.mod,
+    ast.USub: operator.neg, ast.UAdd: operator.pos,
+}
+
+
+def _safe_arith(node):
+    if isinstance(node, ast.Expression):
+        return _safe_arith(node.body)
+    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        return node.value
+    if isinstance(node, ast.BinOp) and type(node.op) in _ARITH_OPS:
+        return _ARITH_OPS[type(node.op)](_safe_arith(node.left), _safe_arith(node.right))
+    if isinstance(node, ast.UnaryOp) and type(node.op) in _ARITH_OPS:
+        return _ARITH_OPS[type(node.op)](_safe_arith(node.operand))
+    raise ValueError("unsupported expression")
+
+
+def parse_number(raw):
+    """Turn a form value into a float. Accepts plain numbers and Excel-style
+    arithmetic formulas (optionally starting with '=')."""
+    if raw is None:
+        return 0.0
+    s = str(raw).strip().replace(",", "")
+    if not s:
+        return 0.0
+    if s.startswith("="):
+        s = s[1:].strip()
+    try:
+        return float(s)
+    except ValueError:
+        pass
+    try:
+        return float(_safe_arith(ast.parse(s, mode="eval")))
+    except Exception:
+        return 0.0
 
 # Delivery-quantity column per fuel type, used to keep fuel_stock live.
 STOCK_TYPES = {
@@ -191,10 +241,7 @@ def daily_new(name):
         f = request.form
 
         def g(field):
-            try:
-                return float(f.get(field) or 0)
-            except ValueError:
-                return 0.0
+            return parse_number(f.get(field))
 
         day = f.get("day")
         if not day:
@@ -241,6 +288,8 @@ def daily_new(name):
         vals["total_expense"] = sum(vals[fld] for fld, _ in EXPENSE_FIELDS)
         vals["profit_sharing"] = g("profit_sharing")
         vals["debts"] = g("debts")
+        vals["coupons"] = g("coupons")            # tracked adjustment
+        vals["internal_sale"] = g("internal_sale")  # tracked adjustment
         vals["total_out"] = (
             vals["total_purchases"] + vals["total_expense"]
             + vals["profit_sharing"] + vals["debts"]
@@ -317,6 +366,7 @@ def daily_new(name):
         "daily_new.html", st=st, prev=prev,
         odometer_fields=ODOMETER_FIELDS, price_fields=PRICE_FIELDS,
         income_fields=OTHER_INCOME_FIELDS, expense_fields=EXPENSE_FIELDS,
+        adjustment_fields=ADJUSTMENT_FIELDS,
         stock_types=list(STOCK_TYPES.keys()),
     )
 
@@ -340,10 +390,7 @@ def deliveries(name):
         f = request.form
 
         def g(field):
-            try:
-                return float(f.get(field) or 0)
-            except ValueError:
-                return 0.0
+            return parse_number(f.get(field))
 
         day = f.get("day")
         ftype = f.get("fuel_type")

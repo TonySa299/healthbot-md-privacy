@@ -2,8 +2,11 @@
 {% block title %}New day · {{ st.name }}{% endblock %}
 {% block content %}
 <div class="page-head"><h1>{{ st.name }} — New Daily Record</h1></div>
-<p class="muted">Enter the pump odometers, prices, other sales, expenses and any
-fuel restocks. Litres sold and every total are calculated on save.</p>
+<p class="muted">Enter the pump odometers, prices, other sales, expenses, adjustments
+and any fuel restocks. Litres sold and every total are calculated on save.</p>
+<p class="muted small">💡 Every number cell works like Excel — type a value, or a
+formula such as <code>=1200+300</code>, <code>=500*0.8</code> or
+<code>=(3812+4127)/2</code>. It calculates when you leave the cell.</p>
 
 {% if prev %}
 <div class="prevbox">
@@ -45,15 +48,15 @@ fuel restocks. Litres sold and every total are calculated on save.</p>
         <span class="prev-hint">prev {{ (prev[fa] if prev else 0)|qty }} / {{ (prev[fb] if prev else 0)|qty }}</span>
       </div>
       <label>Odometer A
-        <input type="number" step="any" name="{{ fa }}" class="odo-a"
+        <input type="text" inputmode="decimal" name="{{ fa }}" class="odo-a calc"
                value="{{ (prev[fa] if prev else 0)|round(0, 'floor')|int }}">
       </label>
       <label>Odometer B
-        <input type="number" step="any" name="{{ fb }}" class="odo-b"
+        <input type="text" inputmode="decimal" name="{{ fb }}" class="odo-b calc"
                value="{{ (prev[fb] if prev else 0)|round(0, 'floor')|int }}">
       </label>
       <div class="litres-out">Litres sold<span class="litres-val" data-out="{{ key }}">0</span></div>
-      <label>Price / L<input type="number" step="any" name="{{ fp }}" class="price-in" value="0"></label>
+      <label>Price / L<input type="text" inputmode="decimal" name="{{ fp }}" class="price-in calc" value="0"></label>
       <div class="revenue-out">Revenue<span class="revenue-val" data-rev="{{ key }}">0.00</span></div>
     </div>
     {% endfor %}
@@ -67,7 +70,7 @@ fuel restocks. Litres sold and every total are calculated on save.</p>
     <legend>Other sales</legend>
     <div class="form-grid">
       {% for field, label in income_fields %}
-        <label>{{ label }}<input type="number" step="any" name="{{ field }}" value="0"></label>
+        <label>{{ label }}<input type="text" inputmode="decimal" class="calc" name="{{ field }}" value="0"></label>
       {% endfor %}
     </div>
   </fieldset>
@@ -76,10 +79,20 @@ fuel restocks. Litres sold and every total are calculated on save.</p>
     <legend>Expenses</legend>
     <div class="form-grid">
       {% for field, label in expense_fields %}
-        <label>{{ label }}<input type="number" step="any" name="{{ field }}" value="0"></label>
+        <label>{{ label }}<input type="text" inputmode="decimal" class="calc" name="{{ field }}" value="0"></label>
       {% endfor %}
-      <label>Profit sharing<input type="number" step="any" name="profit_sharing" value="0"></label>
-      <label>Debts (unpaid)<input type="number" step="any" name="debts" value="0"></label>
+      <label>Profit sharing<input type="text" inputmode="decimal" class="calc" name="profit_sharing" value="0"></label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Adjustments</legend>
+    <p class="muted small">Debts reduce the day's cash out. Coupons and internal
+      transfers are recorded alongside the day.</p>
+    <div class="form-grid">
+      {% for field, label in adjustment_fields %}
+        <label>{{ label }}<input type="text" inputmode="decimal" class="calc" name="{{ field }}" value="0"></label>
+      {% endfor %}
     </div>
   </fieldset>
 
@@ -95,8 +108,8 @@ fuel restocks. Litres sold and every total are calculated on save.</p>
           {% for t in stock_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
         </select>
       </label>
-      <label>Litres<input type="number" step="any" name="restock_qty_{{ i }}" value="0"></label>
-      <label>Price / L<input type="number" step="any" name="restock_price_{{ i }}" value="0"></label>
+      <label>Litres<input type="text" inputmode="decimal" class="calc" name="restock_qty_{{ i }}" value="0"></label>
+      <label>Price / L<input type="text" inputmode="decimal" class="calc" name="restock_price_{{ i }}" value="0"></label>
     </div>
     {% endfor %}
   </fieldset>
@@ -114,14 +127,16 @@ fuel restocks. Litres sold and every total are calculated on save.</p>
   var fmt = function (n) { return n.toLocaleString(undefined, {maximumFractionDigits: 0}); };
   var money = function (n) { return n.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); };
 
+  var num = function (raw) { var v = window.evalCell(raw); return isNaN(v) ? 0 : v; };
+
   function recalc() {
     var totalL = 0, totalRev = 0;
     document.querySelectorAll('.fuel-row').forEach(function (row) {
       var prevA = parseFloat(row.dataset.prevA) || 0;
       var prevB = parseFloat(row.dataset.prevB) || 0;
-      var a = parseFloat(row.querySelector('.odo-a').value) || 0;
-      var b = parseFloat(row.querySelector('.odo-b').value) || 0;
-      var price = parseFloat(row.querySelector('.price-in').value) || 0;
+      var a = num(row.querySelector('.odo-a').value);
+      var b = num(row.querySelector('.odo-b').value);
+      var price = num(row.querySelector('.price-in').value);
       var litres = (a + b) - (prevA + prevB);
       var reset = litres < 0;
       if (reset) litres = 0;
@@ -137,7 +152,8 @@ fuel restocks. Litres sold and every total are calculated on save.</p>
   }
 
   document.querySelectorAll('.fuel-row input').forEach(function (el) {
-    el.addEventListener('input', recalc);
+    el.addEventListener('input', recalc);   // live while typing
+    el.addEventListener('recalc', recalc);  // after a formula is evaluated on blur
   });
   recalc();
 })();

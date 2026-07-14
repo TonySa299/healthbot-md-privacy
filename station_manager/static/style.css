@@ -104,6 +104,9 @@ h3{font-size:.95rem;margin:1.2rem 0 .5rem;color:var(--muted);text-transform:uppe
   border:1px solid var(--line);border-radius:6px;padding:.45rem .5rem;font-size:.95rem}
 .entry-form input:focus,.entry-form textarea:focus,.entry-form select:focus{outline:none;border-color:var(--red);
   box-shadow:0 0 0 2px var(--red-soft)}
+.entry-form input.calc-bad{border-color:var(--red);background:var(--red-soft)}
+code{background:var(--panel2);border:1px solid var(--line);border-radius:4px;
+  padding:.05rem .3rem;font-size:.85em;color:var(--red-dark)}
 
 .fuel-row{display:grid;grid-template-columns:1.2fr 1fr 1fr .9fr .9fr .9fr;gap:.7rem;
   align-items:end;padding:.7rem 0;border-top:1px dashed var(--line)}
