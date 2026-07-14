@@ -287,12 +287,17 @@ def daily_new(name):
         )
         vals["total_expense"] = sum(vals[fld] for fld, _ in EXPENSE_FIELDS)
         vals["profit_sharing"] = g("profit_sharing")
+        # Debts, coupons and internal transfers are litres shown on the odometer
+        # (so counted as sales) but not collected today, so each reduces net cash
+        # — matching the sheet's Total OUT = SUM(Debts,Internal,Coupons,Difference,
+        # Purchases,Expenses,Profit Sharing).
         vals["debts"] = g("debts")
-        vals["coupons"] = g("coupons")            # tracked adjustment
-        vals["internal_sale"] = g("internal_sale")  # tracked adjustment
+        vals["coupons"] = g("coupons")
+        vals["internal_sale"] = g("internal_sale")
+        vals["difference"] = g("difference")
         vals["total_out"] = (
-            vals["total_purchases"] + vals["total_expense"]
-            + vals["profit_sharing"] + vals["debts"]
+            vals["total_purchases"] + vals["total_expense"] + vals["profit_sharing"]
+            + vals["debts"] + vals["coupons"] + vals["internal_sale"] + vals["difference"]
         )
         vals["daily_total"] = vals["total_in"] - vals["total_out"]
         vals["station_id"] = st["id"]

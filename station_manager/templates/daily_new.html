@@ -86,9 +86,10 @@ formula such as <code>=1200+300</code>, <code>=500*0.8</code> or
   </fieldset>
 
   <fieldset>
-    <legend>Adjustments</legend>
-    <p class="muted small">Debts reduce the day's cash out. Coupons and internal
-      transfers are recorded alongside the day.</p>
+    <legend>Adjustments — litres sold but not collected today</legend>
+    <p class="muted small">Debts, coupons and internal transfers are litres shown on
+      the odometer (counted as sales) but not paid in cash today, so <b>each one
+      lowers the day's net cash</b>.</p>
     <div class="form-grid">
       {% for field, label in adjustment_fields %}
         <label>{{ label }}<input type="text" inputmode="decimal" class="calc" name="{{ field }}" value="0"></label>
