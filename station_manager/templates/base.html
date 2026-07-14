@@ -15,11 +15,8 @@
       <a href="{{ url_for('station', name=s) }}">{{ s }}</a>
     {% endfor %}
     <a href="{{ url_for('reports') }}">Reports</a>
+    <a href="{{ url_for('import_data') }}">Data file</a>
   </nav>
-  <form method="post" action="{{ url_for('reimport') }}" class="reimport"
-        onsubmit="return confirm('Re-import overwrites the database with the workbook. Continue?')">
-    <button type="submit" title="Reload from Excel workbook">↻ Re-import</button>
-  </form>
 </header>
 
 <main>

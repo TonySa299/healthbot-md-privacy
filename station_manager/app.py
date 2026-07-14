@@ -24,7 +24,8 @@ from flask import (
     Flask, render_template, request, redirect, url_for, flash, abort
 )
 
-from db import get_conn, init_db, DB_PATH, resource_path, ensure_live_workbook
+from db import (get_conn, init_db, DB_PATH, resource_path,
+                ensure_live_workbook, LIVE_WORKBOOK)
 import analytics
 import excel_sync
 from importer import run_import
@@ -35,6 +36,7 @@ app = Flask(__name__,
             template_folder=resource_path("templates"),
             static_folder=resource_path("static"))
 app.secret_key = "station-manager-local"
+app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB upload cap
 
 # The six pump counters entered on the daily form (A & B per fuel).
 ODOMETER_FIELDS = [
@@ -456,11 +458,80 @@ def reports():
                            months=all_months)
 
 
+REQUIRED_SHEETS = [f"Daily {s}" for s in ("Halba", "Tekrit")] + \
+                  [f"ODOMETERS {s}" for s in ("Halba", "Tekrit")]
+
+
+def _workbook_info():
+    """Path, last-modified and row counts for the current data file."""
+    import datetime as _dt
+    info = {"path": LIVE_WORKBOOK, "exists": os.path.exists(LIVE_WORKBOOK),
+            "modified": None, "stations": []}
+    if info["exists"]:
+        info["modified"] = _dt.datetime.fromtimestamp(
+            os.path.getmtime(LIVE_WORKBOOK)).strftime("%Y-%m-%d %H:%M")
+    conn = get_conn()
+    for s in conn.execute("SELECT id, name FROM stations ORDER BY name"):
+        row = conn.execute(
+            "SELECT COUNT(*) c, MAX(day) m FROM daily_records WHERE station_id=?",
+            (s["id"],)).fetchone()
+        info["stations"].append({"name": s["name"], "days": row["c"], "latest": row["m"]})
+    return info
+
+
+@app.route("/data", methods=["GET"])
+def import_data():
+    return render_template("import.html", info=_workbook_info())
+
+
 @app.route("/reimport", methods=["POST"])
 def reimport():
     run_import(verbose=False)
-    flash("Workbook re-imported from data/General_Cashflow.xlsx.", "success")
-    return redirect(url_for("dashboard"))
+    flash("Reloaded from the current Excel file.", "success")
+    return redirect(url_for("import_data"))
+
+
+@app.route("/data/upload", methods=["POST"])
+def upload_data():
+    file = request.files.get("file")
+    if not file or not file.filename:
+        flash("Please choose an Excel file first.", "error")
+        return redirect(url_for("import_data"))
+    if not file.filename.lower().endswith((".xlsx", ".xlsm")):
+        flash("That is not an Excel file (.xlsx). Please choose the correct file.", "error")
+        return redirect(url_for("import_data"))
+
+    # Save to a temporary path and validate before touching the live file.
+    # (Keep a .xlsx extension so openpyxl will open it.)
+    tmp = LIVE_WORKBOOK + ".new.xlsx"
+    try:
+        file.save(tmp)
+        import openpyxl
+        wb = openpyxl.load_workbook(tmp, read_only=True)
+        missing = [s for s in REQUIRED_SHEETS if s not in wb.sheetnames]
+        wb.close()
+        if missing:
+            os.remove(tmp)
+            flash("This file is missing expected sheets (" + ", ".join(missing)
+                  + "). It doesn't look like the General Cashflow workbook.", "error")
+            return redirect(url_for("import_data"))
+    except Exception as exc:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        flash(f"Could not read that file: {exc}", "error")
+        return redirect(url_for("import_data"))
+
+    # Back up the current file, then swap in the new one and re-import.
+    try:
+        excel_sync._backup()
+    except Exception:
+        pass
+    import shutil
+    shutil.move(tmp, LIVE_WORKBOOK)
+    run_import(verbose=False)
+    flash(f"Loaded new data from '{file.filename}'. Everything has been updated.",
+          "success")
+    return redirect(url_for("import_data"))
 
 
 @app.context_processor

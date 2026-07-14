@@ -32,8 +32,10 @@ two stations. This app consolidates all of that into one dashboard.
   `Daily <Station>` and `ODOMETERS <Station>` sheets of the workbook, so your
   spreadsheet stays in sync. A timestamped backup (last 20 kept, in `backups/`)
   is taken before each write, and a sync problem never blocks saving in the app.
-- **APEC theme** — styled in Arabian Petroleum Company's red-and-green identity.
-- **Re-import** — reload everything from the Excel workbook with one click.
+- **APEC theme** — styled in Arabian Petroleum Company's red-and-black identity.
+- **Data file page** — load a different/updated `General_Cashflow.xlsx` from your
+  computer (validated, with an automatic backup), or reload the current one after
+  editing it in Excel.
 
 ## Daily workflow
 

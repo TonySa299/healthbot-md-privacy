@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Data file · Station Manager{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Data File</h1></div>
+<p class="muted">The app keeps everything in one Excel workbook,
+<code>General_Cashflow.xlsx</code>. You can load a different/updated copy here,
+or reload the current one after editing it.</p>
+
+<div class="grid-2">
+  <section class="card">
+    <h2>Load a different Excel file</h2>
+    <p class="muted small">Pick an updated <b>General Cashflow</b> workbook from your
+      computer. The app checks it, keeps a backup of the current one, then rebuilds
+      everything from the new file.</p>
+    <form method="post" action="{{ url_for('upload_data') }}"
+          enctype="multipart/form-data" class="entry-form"
+          onsubmit="return confirm('Replace the current data with this file? A backup of the current file is kept automatically.')">
+      <div class="form-grid">
+        <label class="wide">Excel file (.xlsx)
+          <input type="file" name="file" accept=".xlsx,.xlsm" required>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="btn primary">Load this file &amp; update</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Current data file</h2>
+    <table class="tbl">
+      <tbody>
+        <tr><td>File</td><td class="num">General_Cashflow.xlsx</td></tr>
+        <tr><td>Last changed</td><td class="num">{{ info.modified or '—' }}</td></tr>
+        {% for s in info.stations %}
+        <tr><td>{{ s.name }}</td><td class="num">{{ s.days }} days · latest {{ s.latest or '—' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="muted small" style="margin-top:.6rem;word-break:break-all">Stored at:<br>{{ info.path }}</p>
+
+    <h3>Edited the current file?</h3>
+    <p class="muted small">If you changed the file above in Excel, reload it here.</p>
+    <form method="post" action="{{ url_for('reimport') }}"
+          onsubmit="return confirm('Reload from the current Excel file?')">
+      <button type="submit" class="btn">↻ Reload current file</button>
+    </form>
+  </section>
+</div>
+
+<section class="card">
+  <h3>Good to know</h3>
+  <ul class="muted small" style="margin:.3rem 0 0 1.1rem;line-height:1.7">
+    <li>The app also <b>writes each day you enter back into this same file</b>, so it
+      stays up to date automatically.</li>
+    <li>Every time you load or reload, a timestamped <b>backup</b> of the previous
+      file is saved in the <code>backups</code> folder next to the app.</li>
+    <li>A loaded file must be the General Cashflow workbook (it needs the
+      <code>Daily</code> and <code>ODOMETERS</code> sheets for each station).</li>
+  </ul>
+</section>
+{% endblock %}
